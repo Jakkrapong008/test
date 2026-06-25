@@ -53,16 +53,15 @@
             left: 50%;
             transform: translate(-50%, -50%);
             border: 4px dashed rgba(255, 204, 0, 0.8);
-            border-radius: 50%; /* ทำให้เป็นวงรี */
-            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.55); /* ทำพื้นหลังรอบนอกให้มืดลง */
+            border-radius: 50%;
+            box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.55);
             pointer-events: none;
             z-index: 15;
-            display: none; /* ซ่อนไว้ก่อน จะโชว์ตอนเปิดกล้อง */
+            display: none;
         }
         .face-guide-scan { width: 220px; height: 300px; max-width: 55%; max-height: 70%; }
         .face-guide-reg { width: 150px; height: 200px; max-width: 60%; max-height: 80%; }
         
-        /* อนิเมชันกระพริบเบาๆ ให้กรอบน่าสนใจ */
         @keyframes pulse-border {
             0% { border-color: rgba(255, 204, 0, 1); box-shadow: 0 0 0 2000px rgba(0,0,0,0.55), 0 0 20px rgba(255, 204, 0, 0.3) inset; }
             50% { border-color: rgba(255, 204, 0, 0.4); box-shadow: 0 0 0 2000px rgba(0,0,0,0.55), 0 0 0px rgba(255, 204, 0, 0) inset; }
@@ -70,7 +69,6 @@
         }
         .face-guide.active { display: block; animation: pulse-border 2s infinite; }
 
-        /* Custom Animations สำหรับเส้นสแกน */
         @keyframes scanline {
             0% { top: 0%; opacity: 0; }
             10% { opacity: 1; }
@@ -93,7 +91,7 @@
         <div class="absolute inset-0 bg-brand-redlight opacity-30 transform -skew-y-3 origin-top-left z-0"></div>
         <div class="max-w-6xl mx-auto px-4 py-4 relative z-10 flex flex-col sm:flex-row items-center justify-between">
             <div class="flex items-center space-x-4 mb-4 sm:mb-0">
-                <img src="https://img2.pic.in.th/logob0b7643db577ceee.png" alt="Logo" class="h-16 w-16 bg-white rounded-full p-1 border-2 border-brand-yellow" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZWVlIi8+PC9zdmc+'">
+                <img src="https://img2.pic.in.th/logob0b7643db577ceee.png" alt="Logo" class="h-16 w-16 bg-white rounded-full p-1 border-2 border-brand-yellow" onerror="this.src='https://placehold.co/100x100/ffffff/cc0000?text=WMK'">
                 <div>
                     <h1 class="text-2xl font-bold text-brand-yellow drop-shadow-md">โรงเรียนวัดแม่กะ</h1>
                     <p class="text-sm font-light">ระบบสแกนใบหน้าเช็คชื่อนักเรียนอัจฉริยะ</p>
@@ -108,7 +106,6 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
         
         <!-- Loading Overlay -->
@@ -127,15 +124,12 @@
                     <video id="scan-video" autoplay muted playsinline class="w-full h-auto min-h-[300px]"></video>
                     <canvas id="scan-canvas"></canvas>
                     
-                    <!-- เพิ่มกรอบวงรีบังคับใบหน้า -->
                     <div id="scan-guide" class="face-guide face-guide-scan"></div>
-                    
                     <div class="scanner-line hidden" id="scanner-line"></div>
                 </div>
 
                 <div class="mt-6 flex flex-wrap justify-center gap-3">
                     <button id="btn-start-scan" onclick="startScanningProcess()" class="bg-brand-red hover:bg-red-700 text-white px-6 py-3 rounded-full font-bold shadow-lg transition-transform transform hover:scale-105"><i class="fas fa-play mr-2"></i>เปิดกล้อง</button>
-                    <!-- เพิ่มปุ่มสลับกล้องสำหรับหน้าสแกน -->
                     <button id="btn-switch-scan" onclick="switchCamera('scan')" class="bg-blue-100 hover:bg-blue-200 text-blue-800 border border-blue-300 px-6 py-3 rounded-full font-bold shadow transition-all hidden"><i class="fas fa-sync-alt mr-2"></i>สลับกล้อง</button>
                     <button id="btn-stop-scan" onclick="stopCamera()" class="bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-full font-bold shadow transition-all hidden"><i class="fas fa-stop mr-2"></i>ปิดกล้อง</button>
                 </div>
@@ -154,8 +148,6 @@
                         <div class="video-container bg-gray-100 rounded-2xl overflow-hidden border-2 border-dashed border-gray-300 h-64 flex items-center justify-center mb-4 relative" id="reg-container">
                             <video id="reg-video" autoplay muted playsinline class="w-full h-full hidden" style="object-fit: cover;"></video>
                             <canvas id="reg-canvas" class="hidden absolute top-0 left-0 w-full h-full"></canvas>
-                            
-                            <!-- เพิ่มกรอบวงรีสำหรับหน้าลงทะเบียน -->
                             <div id="reg-guide" class="face-guide face-guide-reg"></div>
 
                             <div id="reg-placeholder" class="text-gray-400 text-center z-10">
@@ -164,7 +156,6 @@
                         </div>
                         <div class="flex justify-center flex-wrap gap-2">
                             <button id="btn-start-reg" onclick="startRegisterCamera()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow"><i class="fas fa-video mr-1"></i>เปิดกล้อง</button>
-                            <!-- เพิ่มปุ่มสลับกล้องสำหรับหน้าลงทะเบียน -->
                             <button id="btn-switch-reg" onclick="switchCamera('register')" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-lg shadow hidden"><i class="fas fa-sync-alt mr-1"></i>สลับกล้อง</button>
                             <button onclick="captureFace()" id="btn-capture" disabled class="bg-brand-yellow hover:bg-yellow-500 text-brand-red px-4 py-2 rounded-lg shadow font-bold disabled:opacity-50"><i class="fas fa-camera-retro mr-1"></i>บันทึกใบหน้า</button>
                         </div>
@@ -236,7 +227,6 @@
                             </tr>
                         </thead>
                         <tbody id="dash-tbody">
-                            <!-- Data will be populated here -->
                             <tr><td colspan="7" class="p-8 text-center text-gray-400">กำลังโหลดข้อมูล...</td></tr>
                         </tbody>
                     </table>
@@ -273,21 +263,29 @@
                         <div class="w-full relative hidden" style="height: 350px;" id="chart-container">
                             <canvas id="attendanceChart"></canvas>
                         </div>
-
                     </div>
                 </div>
-
             </div>
         </div>
 
-        <!-- Popup Overlay กลางจอ -->
-        <div id="scan-popup-overlay" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
-            <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 text-center" id="scan-popup-card">
-                <div id="scan-popup-icon-container" class="mb-4">
-                    <i id="scan-popup-icon" class="fas fa-spinner fa-spin text-7xl text-blue-500"></i>
+        <!-- Popup Overlay กลางจอ สำหรับการสแกน (ขยายใหญ่ขึ้น และมีปุ่มยืนยัน/ยกเลิก) -->
+        <div id="scan-popup-overlay" class="fixed inset-0 bg-black/70 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-8 sm:p-12 max-w-2xl w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 text-center border-4 border-blue-100" id="scan-popup-card">
+                <div id="scan-popup-icon-container" class="mb-6">
+                    <i id="scan-popup-icon" class="fas fa-question-circle text-8xl text-blue-500"></i>
                 </div>
-                <h2 id="scan-popup-title" class="text-3xl font-bold mb-3 text-blue-600">กำลังตรวจสอบ...</h2>
-                <p id="scan-popup-name" class="text-2xl font-medium text-gray-600"></p>
+                <h2 id="scan-popup-title" class="text-4xl md:text-5xl font-bold mb-4 text-blue-600">ยืนยันตัวตน</h2>
+                <!-- ชื่อขยายใหญ่พิเศษ -->
+                <p id="scan-popup-name" class="text-5xl md:text-6xl font-bold text-gray-800 mb-10 leading-tight"></p>
+                
+                <div id="scan-popup-actions" class="flex flex-col sm:flex-row justify-center gap-6">
+                    <button onclick="cancelScan()" class="flex-1 px-8 py-5 rounded-2xl text-2xl font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition-colors shadow">
+                        <i class="fas fa-times mr-2"></i>ยกเลิก
+                    </button>
+                    <button onclick="confirmScan()" class="flex-1 px-8 py-5 rounded-2xl text-2xl font-bold text-white bg-green-500 hover:bg-green-600 shadow-xl transition-colors transform hover:scale-105">
+                        <i class="fas fa-check mr-2"></i>ยืนยันเช็คชื่อ
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -304,7 +302,6 @@
                     </button>
                 </div>
                 
-                <!-- เติม min-h-0 เพื่อบังคับให้ Scroll ทำงาน -->
                 <div class="overflow-y-auto flex-grow min-h-0 pr-2 space-y-2" id="edit-student-list">
                     <!-- รายชื่อจะถูกเติมด้วย JavaScript -->
                 </div>
@@ -316,7 +313,7 @@
             </div>
         </div>
 
-        <!-- Popup แสดงรูปสรุปการมาเรียน (ใหม่) -->
+        <!-- Popup แสดงรูปสรุปการมาเรียน (รองรับ LINE/Facebook Browser) -->
         <div id="summary-popup-overlay" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
             <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-2xl w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 max-h-[95vh] flex flex-col relative" id="summary-popup-card">
                 <!-- ปุ่มปิด (กากบาท) -->
@@ -328,16 +325,16 @@
                 
                 <!-- พื้นที่แสดงรูปภาพ -->
                 <div class="overflow-y-auto flex-grow rounded-2xl border-2 border-gray-200 bg-gray-100 flex items-center justify-center p-2 mb-4">
-                    <!-- เพิ่ม style เพื่อบังคับให้อนุญาตการกดค้าง (touch-callout) -->
+                    <!-- style บังคับให้อนุญาตการกดค้าง (touch-callout) ใน mobile -->
                     <img id="summary-result-img" src="" alt="Summary Image" class="max-w-full h-auto rounded shadow-sm" style="-webkit-touch-callout: default; pointer-events: auto;">
                 </div>
                 
                 <!-- คำแนะนำและปุ่มจัดการ -->
                 <div class="shrink-0 text-center">
-                    <div class="bg-red-50 border border-red-100 text-red-600 text-sm p-3 rounded-xl mb-4 inline-block text-left shadow-sm">
-                        <p class="font-bold"><i class="fas fa-info-circle mr-1"></i>ข้อแนะนำสำหรับผู้ใช้ LINE / Facebook:</p>
+                    <div class="bg-red-50 border border-red-100 text-red-600 text-sm p-3 rounded-xl mb-4 inline-block text-left shadow-sm w-full">
+                        <p class="font-bold"><i class="fas fa-info-circle mr-1"></i>ข้อแนะนำสำหรับผู้ใช้แอป (LINE / Facebook):</p>
                         <p class="mt-1 text-gray-700">1. ลอง <b>"กดค้างที่รูปภาพ"</b> เพื่อบันทึกหรือแชร์</p>
-                        <p class="mt-2 text-xs font-bold">2. หากกดไม่ได้ ให้กดไอคอน ⋮ (จุดสามจุด) ที่มุมขวาบนของจอ แล้วเลือก <br>"เปิดด้วยเบราว์เซอร์อื่น" (Open in external browser) เพื่อใช้งานได้เต็มรูปแบบ</p>
+                        <p class="mt-2 text-xs font-bold">2. หากกดไม่ได้ ให้แตะไอคอน ⋮ (จุดสามจุด) มุมขวาบนของจอ แล้วเลือก <br>"เปิดด้วยเบราว์เซอร์อื่น" (Open in external browser)</p>
                     </div>
                     
                     <div class="flex flex-col sm:flex-row justify-center gap-3">
@@ -368,12 +365,12 @@
         // --- Custom Alert Function for Iframe Compatibility ---
         function customAlert(msg) {
             const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/50 z-[100] flex items-center justify-center';
+            modal.className = 'fixed inset-0 bg-black/60 z-[100] flex items-center justify-center';
             modal.innerHTML = `
-                <div class="bg-white rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center transform transition-all border-t-4 border-brand-red">
-                    <div class="text-brand-red text-4xl mb-4"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="bg-white rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl text-center transform transition-all border-t-4 border-brand-red">
+                    <div class="text-brand-red text-5xl mb-4"><i class="fas fa-exclamation-circle"></i></div>
                     <p class="text-gray-800 text-lg mb-6 font-medium">${msg}</p>
-                    <button onclick="this.closest('.fixed').remove()" class="bg-brand-red text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors w-full font-bold">ตกลง</button>
+                    <button onclick="this.closest('.fixed').remove()" class="bg-brand-red text-white px-6 py-3 rounded-xl hover:bg-red-700 transition-colors w-full font-bold shadow-md">ตกลง</button>
                 </div>
             `;
             document.body.appendChild(modal);
@@ -392,6 +389,9 @@
         let attendanceChart = null; 
         let currentDashboardSummary = null; 
         
+        // ตัวแปรเก็บข้อมูลเด็กที่สแกนเจอเพื่อรอยืนยัน
+        let currentScannedStudent = null; 
+
         // สำหรับเก็บข้อมูลภาพสรุป
         let currentSummaryDataUrl = ''; 
         let currentSummaryFilename = '';
@@ -488,6 +488,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK:Defining API and Face setup functions... ---
         // --- Data Fetching (GAS) ---
         async function fetchAPI(payload) {
             try {
@@ -508,7 +509,7 @@
                 allStudents = res.students;
                 buildFaceMatcher();
             } else {
-                console.log("Failed to fetch students. The API might not be deployed yet.");
+                console.log("Failed to fetch students. API might not be deployed yet.");
             }
         }
 
@@ -535,7 +536,7 @@
                 }
             });
             if (labeledDescriptors.length > 0) {
-                faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.35); // ปรับ Threshold เป็น 0.35 (เข้มงวดปานกลาง)
+                faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.35); // ปรับ Threshold
             } else {
                 faceMatcher = null;
             }
@@ -595,6 +596,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK:Implementing Face Scanning and Validation Logic... ---
         // --- TAB 1: Scanning Logic ---
         async function startScanningProcess() {
             if ('speechSynthesis' in window) {
@@ -607,7 +609,7 @@
 
             await loadFaceModels();
             if (!faceMatcher) {
-                customAlert("ยังไม่มีข้อมูลใบหน้าในระบบ กรุณาลงทะเบียนใบหน้านักเรียนก่อน หรือ API ยังไม่พร้อมใช้งาน");
+                customAlert("ยังไม่มีข้อมูลใบหน้าในระบบ กรุณาลงทะเบียนใบหน้านักเรียนก่อน");
                 return;
             }
 
@@ -641,7 +643,6 @@
                 scanInterval = setInterval(async () => {
                     if(!isScanningActive) return;
 
-                    // กำหนดค่า inputSize เป็น 416 เพื่อเพิ่มความละเอียดในการวิเคราะห์
                     const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416 }))
                         .withFaceLandmarks()
                         .withFaceDescriptors();
@@ -662,65 +663,101 @@
             };
         }
 
+        // ฟังก์ชันเมื่อสแกนพบใบหน้า
         async function handleSuccessfulScan(studentId) {
-            isScanningActive = false; 
+            isScanningActive = false; // หยุดสแกนชั่วคราว
             document.getElementById('scanner-line').classList.add('hidden');
             document.getElementById('scan-guide').classList.remove('active');
             
             const student = allStudents.find(s => s.id.toString() === studentId);
+            currentScannedStudent = student; // เก็บข้อมูลไว้รอการยืนยัน
             
             const popupOverlay = document.getElementById('scan-popup-overlay');
             const popupCard = document.getElementById('scan-popup-card');
             const popupIcon = document.getElementById('scan-popup-icon');
             const popupTitle = document.getElementById('scan-popup-title');
             const popupName = document.getElementById('scan-popup-name');
+            const popupActions = document.getElementById('scan-popup-actions');
+            
+            // เตรียมหน้าจอ "ยืนยันข้อมูล" พร้อมปุ่มกดยืนยัน/ยกเลิก
+            popupIcon.className = "fas fa-user-circle text-8xl text-blue-500";
+            popupTitle.innerText = "ยืนยันตัวตน";
+            popupTitle.className = "text-4xl md:text-5xl font-bold mb-4 text-blue-600";
+            popupName.innerText = student.fullName;
+            popupName.className = "text-5xl md:text-6xl font-bold text-gray-800 mb-10 leading-tight";
+            popupActions.classList.remove('hidden'); // โชว์ปุ่ม
             
             popupOverlay.classList.remove('hidden');
             void popupOverlay.offsetWidth; 
             popupOverlay.classList.remove('opacity-0');
             popupCard.classList.remove('scale-95');
             popupCard.classList.add('scale-100');
-            
-            popupIcon.className = "fas fa-spinner fa-spin text-7xl text-blue-500";
-            popupTitle.innerText = "กำลังตรวจสอบ...";
-            popupTitle.className = "text-3xl font-bold mb-3 text-blue-600";
-            popupName.innerText = student.fullName;
-            popupName.className = "text-2xl font-medium text-gray-600";
+        }
 
+        // ฟังก์ชันเมื่อกดยกเลิก
+        function cancelScan() {
+            const popupOverlay = document.getElementById('scan-popup-overlay');
+            const popupCard = document.getElementById('scan-popup-card');
+            
+            popupOverlay.classList.add('opacity-0');
+            popupCard.classList.remove('scale-100');
+            popupCard.classList.add('scale-95');
+            
+            setTimeout(() => {
+                popupOverlay.classList.add('hidden');
+                currentScannedStudent = null;
+                // เปิดให้สแกนใหม่เมื่อ Popup ปิดลง
+                if(currentStream) {
+                    document.getElementById('scanner-line').classList.remove('hidden');
+                    document.getElementById('scan-guide').classList.add('active');
+                    isScanningActive = true;
+                }
+            }, 300);
+        }
+
+        // ฟังก์ชันเมื่อกดยืนยันการเช็คชื่อ
+        async function confirmScan() {
+            if (!currentScannedStudent) return;
+            const studentId = currentScannedStudent.id.toString();
+            const student = currentScannedStudent; // copy data
+
+            const popupIcon = document.getElementById('scan-popup-icon');
+            const popupTitle = document.getElementById('scan-popup-title');
+            const popupName = document.getElementById('scan-popup-name');
+            const popupActions = document.getElementById('scan-popup-actions');
+            
+            // เปลี่ยนหน้าจอเป็น "กำลังบันทึก" และซ่อนปุ่ม
+            popupActions.classList.add('hidden');
+            popupIcon.className = "fas fa-spinner fa-spin text-8xl text-blue-500";
+            popupTitle.innerText = "กำลังบันทึก...";
+            popupTitle.className = "text-4xl font-bold mb-4 text-blue-600";
+            popupName.className = "text-4xl md:text-5xl font-bold text-gray-500 mb-8"; // หรี่สีชื่อลงนิดหน่อยตอนโหลด
+
+            // ยิง API บันทึกข้อมูล
             const res = await fetchAPI({ action: 'recordAttendance', studentId: studentId });
             
+            // จัดการผลลัพธ์
             if(res.status === 'success') {
-                popupIcon.className = "fas fa-check-circle text-7xl text-green-500";
+                popupIcon.className = "fas fa-check-circle text-8xl text-green-500";
                 popupTitle.innerText = res.message === 'เช็คชื่อแล้ว' ? "เช็คชื่อไปแล้ว" : "บันทึกสำเร็จ";
-                popupTitle.className = "text-4xl font-bold mb-3 text-green-600";
-                popupName.innerText = res.fullName;
-                popupName.className = "text-3xl font-bold text-gray-800 mt-4";
+                popupTitle.className = "text-5xl md:text-6xl font-bold mb-4 text-green-600";
+                popupName.className = "text-5xl md:text-6xl font-bold text-gray-800 mb-8"; // ขยายชื่อกลับมาเข้มๆ
                 
                 speakText(`สวัสดี ${student.fullName}`);
             } else {
-                popupIcon.className = "fas fa-times-circle text-7xl text-red-500";
+                popupIcon.className = "fas fa-times-circle text-8xl text-red-500";
                 popupTitle.innerText = "เกิดข้อผิดพลาด";
-                popupTitle.className = "text-3xl font-bold mb-3 text-red-600";
+                popupTitle.className = "text-4xl font-bold mb-4 text-red-600";
                 popupName.innerText = res.message || "ไม่สามารถบันทึกได้";
             }
 
+            // หน่วงเวลาให้เห็นข้อความ แล้วค่อยปิดเพื่อสแกนคนต่อไป
             setTimeout(() => {
-                popupOverlay.classList.add('opacity-0');
-                popupCard.classList.remove('scale-100');
-                popupCard.classList.add('scale-95');
-                
-                setTimeout(() => {
-                    popupOverlay.classList.add('hidden');
-                    // เปิดให้สแกนใหม่เมื่อ Popup ปิดลง
-                    if(currentStream) {
-                        document.getElementById('scanner-line').classList.remove('hidden');
-                        document.getElementById('scan-guide').classList.add('active');
-                        isScanningActive = true;
-                    }
-                }, 300); 
+                cancelScan(); 
             }, 3000);
         }
 
+        // --- STREAMING_CHUNK:Adding Face Registration logic... ---
         // --- TAB 2: Registration Logic ---
         function filterStudents() {
             const grade = document.getElementById('reg-grade').value;
@@ -756,7 +793,6 @@
             document.getElementById('btn-switch-reg').classList.remove('hidden');
             document.getElementById('btn-capture').disabled = false;
             
-            // เปิดโชว์กรอบวงรี
             document.getElementById('reg-guide').classList.add('active');
         }
 
@@ -774,7 +810,6 @@
             statusDiv.className = "text-sm p-3 rounded-lg bg-blue-100 text-blue-700 block";
             statusDiv.innerHTML = "<i class='fas fa-spinner fa-spin'></i> กำลังสกัดข้อมูลใบหน้า... กรุณามองกล้องนิ่งๆ";
 
-            // กำหนดค่า inputSize เป็น 416 ในตอนลงทะเบียนเช่นกัน
             const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 416 }))
                                            .withFaceLandmarks()
                                            .withFaceDescriptor();
@@ -811,6 +846,7 @@
             }
         }
 
+        // --- STREAMING_CHUNK:Loading and handling dashboard data... ---
         // --- TAB 3: Dashboard & Report Logic ---
         async function loadDashboard() {
             const dateStr = document.getElementById('dash-date').value;
@@ -971,9 +1007,9 @@
             }
         }
 
-        // --- Summary Image Logic ---
+        // --- STREAMING_CHUNK:Implementing Summary Image generator and LINE browser fixes... ---
+        // --- Summary Image Logic (LINE Browser Safe) ---
         
-        // ฟังก์ชันใหม่: ใช้คำนวณว่าบรรทัดรายชื่อเด็กที่ยาวๆ กินความสูงของรูปภาพไปเท่าไหร่
         function wrapTextAndGetHeight(context, text, maxWidth, lineHeight) {
             let words = text.split(' ');
             let line = '';
@@ -1014,39 +1050,32 @@
             if (!currentDashboardSummary || !currentDashboardSummary[grade]) return;
             const data = currentDashboardSummary[grade];
             
-            // แสดง Loading เบาๆ บนหน้าจอระหว่างสร้างรูปภาพ
             showLoading('กำลังสร้างรูปภาพสรุป...');
             
-            // สร้าง Canvas แบบซ่อนไว้ (Off-screen) แทนการแสดง Pop-up
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
             
             const absentText = data.absentList.length > 0 ? data.absentList.join(', ') : 'ไม่มีนักเรียนขาด';
             
-            // คำนวณความสูงของข้อความก่อน
             ctx.font = '36px Sarabun, sans-serif';
             const textHeight = wrapTextAndGetHeight(ctx, absentText, 700, 50);
-            const contentTopOffset = 120; // เผื่อพื้นที่ด้านบนให้ Logo
-            const totalHeight = 480 + contentTopOffset + textHeight + 40; // 480 คือเนื้อหาด้านบน, 40 คือขอบล่าง
+            const contentTopOffset = 120;
+            const totalHeight = 480 + contentTopOffset + textHeight + 40; 
             
-            // ปรับความสูง Canvas ให้ยืดหยุ่นตามเนื้อหา
             canvas.width = 800;
-            canvas.height = Math.max(600 + contentTopOffset, totalHeight); // ความสูงอย่างน้อย
+            canvas.height = Math.max(600 + contentTopOffset, totalHeight); 
             
-            // Background (เปลี่ยนเป็นสีเทาอ่อน 20% ตามที่ต้องการ)
             ctx.fillStyle = '#cccccc';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Load and Draw Logo
             try {
                 const logoImg = new Image();
-                logoImg.crossOrigin = "Anonymous"; // ป้องกันปัญหา CORS
+                logoImg.crossOrigin = "Anonymous"; 
                 logoImg.src = 'https://img2.pic.in.th/logob0b7643db577ceee.png';
                 await new Promise((resolve, reject) => {
                     logoImg.onload = resolve;
                     logoImg.onerror = reject;
                 });
-                // วาด Logo ตรงกลางด้านบน (x=350, y=30, ขนาด 100x100)
                 ctx.drawImage(logoImg, 350, 30, 100, 100);
             } catch (e) {
                 console.log('Logo load error:', e);
@@ -1054,27 +1083,22 @@
             
             ctx.textAlign = 'center';
             
-            // Title
             ctx.font = 'bold 44px Sarabun, sans-serif';
-            ctx.fillStyle = '#0000cc'; // Blue
+            ctx.fillStyle = '#0000cc'; 
             ctx.fillText('รายงานจำนวนนักเรียนโรงเรียนวัดแม่กะ', 400, 100 + contentTopOffset);
             
-            // Grade & Total
             ctx.font = '40px Sarabun, sans-serif';
-            ctx.fillStyle = '#000000'; // Black
+            ctx.fillStyle = '#000000'; 
             ctx.fillText(`ระดับชั้น ${grade} ทั้งหมด ${data.total} คน`, 400, 200 + contentTopOffset);
             
-            // Present & Absent
             ctx.fillText(`มา ${data.present} คน ขาด ${data.absent} คน`, 400, 300 + contentTopOffset);
             
-            // Absent List Title
             ctx.font = 'bold 40px Sarabun, sans-serif';
-            ctx.fillStyle = '#cc0000'; // Red
+            ctx.fillStyle = '#cc0000'; 
             ctx.fillText('รายชื่อผู้ขาดเรียน', 400, 400 + contentTopOffset);
             
-            // Absent List
             ctx.font = '36px Sarabun, sans-serif';
-            ctx.fillStyle = '#000000'; // สีดำเพื่อให้รายชื่ออ่านง่าย
+            ctx.fillStyle = '#000000'; 
             wrapText(ctx, absentText, 400, 460 + contentTopOffset, 700, 50);
             
             // แปลง Canvas เป็น Data URL (base64 image)
@@ -1089,7 +1113,6 @@
                 console.log('Blob conversion failed, using Data URL fallback.');
             }
             
-            // สร้างชื่อไฟล์
             const dateStr = document.getElementById('dash-date').value;
             const dParts = dateStr.split('-');
             const thDate = `${dParts[2]}/${dParts[1]}/${parseInt(dParts[0])+543}`;
@@ -1097,11 +1120,9 @@
 
             hideLoading();
 
-            // นำ Data/Blob URL ไปใส่ใน <img> ของ Modal Popup
             const imgEl = document.getElementById('summary-result-img');
             imgEl.src = displayUrl;
 
-            // แสดง Modal Popup ขึ้นมากลางจอ (แทนการเปิดหน้าต่างใหม่)
             const overlay = document.getElementById('summary-popup-overlay');
             const card = document.getElementById('summary-popup-card');
             
@@ -1127,9 +1148,7 @@
 
         function downloadSummaryImage() {
             if (!currentSummaryDataUrl) return;
-            
             try {
-                // สร้างลิงก์หลอกๆ แล้วสั่งให้เบราว์เซอร์คลิกเพื่อดาวน์โหลด
                 const a = document.createElement('a');
                 a.href = currentSummaryDataUrl;
                 a.download = currentSummaryFilename;
@@ -1143,9 +1162,7 @@
 
         async function shareSummaryImage() {
             if (!currentSummaryDataUrl) return;
-            
             try {
-                // แปลง Base64 กลับเป็น Blob File เพื่อส่งต่อให้ระบบปฏิบัติการแชร์
                 const res = await fetch(currentSummaryDataUrl);
                 const blob = await res.blob();
                 const file = new File([blob], currentSummaryFilename, { type: 'image/png' });
@@ -1160,12 +1177,11 @@
                     customAlert('<div class="text-left text-sm">เบราว์เซอร์นี้ไม่รองรับปุ่มแชร์โดยตรง<br><br>👉 โปรดใช้วิธี <b>"กดค้างที่รูปภาพ"</b> แล้วเลือก <b>"แชร์"</b> หรือ <b>"คัดลอกรูปภาพ"</b> แทนครับ</div>');
                 }
             } catch (err) {
-                // ผู้ใช้อาจจะกดยกเลิกการแชร์ หรือแชร์ไม่สำเร็จ
                 console.log('Share canceled or failed:', err);
-                // ดักจับ Error ไว้เพื่อไม่ให้ระบบค้าง
             }
         }
 
+        // --- STREAMING_CHUNK:Finalizing charts and CSV export... ---
         async function loadReportData() {
             const start = document.getElementById('report-start').value;
             const end = document.getElementById('report-end').value;
