@@ -316,6 +316,40 @@
             </div>
         </div>
 
+        <!-- Popup แสดงรูปสรุปการมาเรียน (ใหม่) -->
+        <div id="summary-popup-overlay" class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+            <div class="bg-white rounded-3xl p-4 sm:p-6 max-w-2xl w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 max-h-[95vh] flex flex-col relative" id="summary-popup-card">
+                <!-- ปุ่มปิด (กากบาท) -->
+                <button onclick="closeSummaryPopup()" class="absolute -top-4 -right-4 bg-gray-800 text-white w-10 h-10 rounded-full shadow-lg flex items-center justify-center hover:bg-red-500 transition-colors z-10 border-2 border-white">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+                
+                <h2 class="text-xl font-bold text-center text-blue-600 mb-3 shrink-0"><i class="fas fa-image mr-2"></i>ภาพสรุปการมาเรียน</h2>
+                
+                <!-- พื้นที่แสดงรูปภาพ -->
+                <div class="overflow-y-auto flex-grow rounded-2xl border-2 border-gray-200 bg-gray-100 flex items-center justify-center p-2 mb-4">
+                    <img id="summary-result-img" src="" alt="Summary Image" class="max-w-full h-auto rounded shadow-sm">
+                </div>
+                
+                <!-- คำแนะนำและปุ่มจัดการ -->
+                <div class="shrink-0 text-center">
+                    <div class="bg-red-50 border border-red-100 text-red-600 text-sm p-3 rounded-xl mb-4 inline-block text-left shadow-sm">
+                        <p class="font-bold"><i class="fas fa-info-circle mr-1"></i>ข้อแนะนำสำหรับผู้ใช้ LINE / Facebook:</p>
+                        <p class="mt-1">หากปุ่มด้านล่างไม่ทำงาน ให้ <b>"กดค้างที่รูปภาพ"</b> เพื่อ <b>บันทึก</b> หรือ <b>แชร์</b></p>
+                    </div>
+                    
+                    <div class="flex flex-col sm:flex-row justify-center gap-3">
+                        <button onclick="downloadSummaryImage()" class="flex-1 bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-colors flex items-center justify-center">
+                            <i class="fas fa-download mr-2"></i>ดาวน์โหลด
+                        </button>
+                        <button onclick="shareSummaryImage()" class="flex-1 bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl font-bold shadow-md transition-colors flex items-center justify-center">
+                            <i class="fas fa-share-alt mr-2"></i>แชร์รูปภาพ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </main>
 
     <!-- ปุ่ม Full Screen ลอยอยู่มุมขวาล่าง -->
@@ -355,6 +389,10 @@
         let reportDataRaw = null; 
         let attendanceChart = null; 
         let currentDashboardSummary = null; 
+        
+        // สำหรับเก็บข้อมูลภาพสรุป
+        let currentSummaryDataUrl = ''; 
+        let currentSummaryFilename = '';
 
         // Register Chart.js DataLabels plugin
         Chart.register(ChartDataLabels);
@@ -974,6 +1012,9 @@
             if (!currentDashboardSummary || !currentDashboardSummary[grade]) return;
             const data = currentDashboardSummary[grade];
             
+            // แสดง Loading เบาๆ บนหน้าจอระหว่างสร้างรูปภาพ
+            showLoading('กำลังสร้างรูปภาพสรุป...');
+            
             // สร้าง Canvas แบบซ่อนไว้ (Off-screen) แทนการแสดง Pop-up
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
@@ -1035,88 +1076,83 @@
             wrapText(ctx, absentText, 400, 460 + contentTopOffset, 700, 50);
             
             // แปลง Canvas เป็น Data URL (base64 image)
-            const dataUrl = canvas.toDataURL('image/png');
+            currentSummaryDataUrl = canvas.toDataURL('image/png');
             
             // สร้างชื่อไฟล์
             const dateStr = document.getElementById('dash-date').value;
             const dParts = dateStr.split('-');
             const thDate = `${dParts[2]}/${dParts[1]}/${parseInt(dParts[0])+543}`;
-            const filename = `summary_${thDate}.png`;
+            currentSummaryFilename = `summary_${thDate}.png`;
 
-            // เปิดหน้าต่าง/แท็บใหม่
-            const newWin = window.open('', '_blank');
-            if(!newWin) {
-                customAlert('กรุณาอนุญาตให้เบราว์เซอร์เปิดหน้าต่างใหม่ (Allow Pop-ups) ก่อนใช้งานฟังก์ชันนี้');
-                return;
+            hideLoading();
+
+            // นำ Data URL ไปใส่ใน <img> ของ Modal Popup
+            const imgEl = document.getElementById('summary-result-img');
+            imgEl.src = currentSummaryDataUrl;
+
+            // แสดง Modal Popup ขึ้นมากลางจอ (แทนการเปิดหน้าต่างใหม่)
+            const overlay = document.getElementById('summary-popup-overlay');
+            const card = document.getElementById('summary-popup-card');
+            
+            overlay.classList.remove('hidden');
+            void overlay.offsetWidth;
+            overlay.classList.remove('opacity-0');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }
+
+        function closeSummaryPopup() {
+            const overlay = document.getElementById('summary-popup-overlay');
+            const card = document.getElementById('summary-popup-card');
+            
+            overlay.classList.add('opacity-0');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+            
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        function downloadSummaryImage() {
+            if (!currentSummaryDataUrl) return;
+            
+            try {
+                // สร้างลิงก์หลอกๆ แล้วสั่งให้เบราว์เซอร์คลิกเพื่อดาวน์โหลด
+                const a = document.createElement('a');
+                a.href = currentSummaryDataUrl;
+                a.download = currentSummaryFilename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } catch (err) {
+                customAlert('<div class="text-left text-sm">เบราว์เซอร์นี้ไม่รองรับการดาวน์โหลดไฟล์โดยตรง<br><br>👉 โปรดใช้วิธี <b>"กดค้างที่รูปภาพ"</b> แล้วเลือก <b>"บันทึกรูปภาพ"</b> แทนครับ</div>');
             }
+        }
 
-            // เขียน HTML หน้าใหม่ที่ประกอบด้วย รูปภาพ และปุ่มแชร์ + ดาวน์โหลด
-            newWin.document.write(`
-                <!DOCTYPE html>
-                <html lang="th">
-                <head>
-                    <meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>ภาพสรุปการมาเรียน ${grade}</title>
-                    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-                    <script src="https://cdn.tailwindcss.com"><\/script>
-                    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-                    <style>
-                        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; margin: 0; }
-                        .image-container { max-width: 100%; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; margin-bottom: 24px; border: 2px solid #ddd; }
-                        img { width: 100%; max-width: 800px; height: auto; display: block; }
-                    </style>
-                </head>
-                <body>
-                    <div class="image-container">
-                        <img src="${dataUrl}" alt="Summary Image">
-                    </div>
-                    <div class="flex flex-wrap justify-center gap-4 mt-2">
-                        <button onclick="downloadImage()" class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-4 rounded-full font-bold shadow-lg transition-all text-lg flex items-center">
-                            <i class="fas fa-download mr-3"></i>ดาวน์โหลด
-                        </button>
-                        <button onclick="shareImage()" class="bg-green-500 hover:bg-green-600 text-white px-8 py-4 rounded-full font-bold shadow-lg transition-all text-lg flex items-center">
-                            <i class="fas fa-share-alt mr-3"></i>แชร์รูปภาพ
-                        </button>
-                    </div>
+        async function shareSummaryImage() {
+            if (!currentSummaryDataUrl) return;
+            
+            try {
+                // แปลง Base64 กลับเป็น Blob File เพื่อส่งต่อให้ระบบปฏิบัติการแชร์
+                const res = await fetch(currentSummaryDataUrl);
+                const blob = await res.blob();
+                const file = new File([blob], currentSummaryFilename, { type: 'image/png' });
 
-                    <script>
-                        function downloadImage() {
-                            const a = document.createElement('a');
-                            a.href = "${dataUrl}";
-                            a.download = "${filename}";
-                            document.body.appendChild(a);
-                            a.click();
-                            document.body.removeChild(a);
-                        }
-
-                        async function shareImage() {
-                            const dataUrl = "${dataUrl}";
-                            const filename = "${filename}";
-                            
-                            try {
-                                const res = await fetch(dataUrl);
-                                const blob = await res.blob();
-                                const file = new File([blob], filename, { type: 'image/png' });
-
-                                if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                                    await navigator.share({
-                                        files: [file],
-                                        title: 'สรุปการมาเรียน',
-                                        text: 'สรุปการมาเรียนประจำวัน โรงเรียนวัดแม่กะ'
-                                    });
-                                } else {
-                                    alert('อุปกรณ์ของคุณไม่รองรับการแชร์โดยตรง กรุณากดปุ่มดาวน์โหลดแทนครับ');
-                                }
-                            } catch (err) {
-                                console.log('Share canceled or failed:', err);
-                            }
-                        }
-                    <\/script>
-                </body>
-                </html>
-            `);
-            newWin.document.close();
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: 'สรุปการมาเรียน',
+                        text: 'สรุปการมาเรียนประจำวัน โรงเรียนวัดแม่กะ'
+                    });
+                } else {
+                    customAlert('<div class="text-left text-sm">เบราว์เซอร์นี้ไม่รองรับปุ่มแชร์โดยตรง<br><br>👉 โปรดใช้วิธี <b>"กดค้างที่รูปภาพ"</b> แล้วเลือก <b>"แชร์"</b> หรือ <b>"คัดลอกรูปภาพ"</b> แทนครับ</div>');
+                }
+            } catch (err) {
+                // ผู้ใช้อาจจะกดยกเลิกการแชร์ หรือแชร์ไม่สำเร็จ
+                console.log('Share canceled or failed:', err);
+                // ดักจับ Error ไว้เพื่อไม่ให้ระบบค้าง
+            }
         }
 
         async function loadReportData() {
