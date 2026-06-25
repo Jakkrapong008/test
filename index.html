@@ -289,7 +289,7 @@
             </div>
         </div>
 
-        <!-- Popup แก้ไขการมาเรียน -->
+        <!-- Popup แก้ไขการมาเรียน (ระบบใหม่) -->
         <div id="edit-popup-overlay" class="fixed inset-0 bg-black/60 z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
             <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full mx-4 shadow-2xl transform scale-95 transition-transform duration-300 max-h-[90vh] flex flex-col" id="edit-popup-card">
                 <div class="flex justify-between items-center mb-4 pb-4 border-b border-gray-200 shrink-0">
@@ -303,7 +303,7 @@
                 </div>
                 
                 <div class="overflow-y-auto flex-grow min-h-0 pr-2 space-y-2" id="edit-student-list">
-                    <!-- รายชื่อจะถูกเติมด้วย JavaScript -->
+                    <!-- รายชื่อและเมนู Dropdown จะถูกเติมด้วย JavaScript -->
                 </div>
                 
                 <div class="mt-6 pt-4 border-t border-gray-200 flex justify-end space-x-3 shrink-0">
@@ -488,7 +488,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK:Defining API and Face setup functions... ---
         // --- Data Fetching (GAS) ---
         async function fetchAPI(payload) {
             try {
@@ -596,7 +595,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK:Implementing Face Scanning and Validation Logic... ---
         // --- TAB 1: Scanning Logic ---
         async function startScanningProcess() {
             if ('speechSynthesis' in window) {
@@ -757,7 +755,6 @@
             }, 3000);
         }
 
-        // --- STREAMING_CHUNK:Adding Face Registration logic... ---
         // --- TAB 2: Registration Logic ---
         function filterStudents() {
             const grade = document.getElementById('reg-grade').value;
@@ -846,7 +843,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK:Loading and handling dashboard data... ---
         // --- TAB 3: Dashboard & Report Logic ---
         async function loadDashboard() {
             const dateStr = document.getElementById('dash-date').value;
@@ -903,25 +899,34 @@
             }
         }
 
-        // ฟังก์ชันสำหรับเปิด Popup แก้ไข
+        // ฟังก์ชันสำหรับเปิด Popup แก้ไข (ระบบลากิจ/ลาป่วย/อื่นๆ)
         function openEditPopup(grade) {
             const dateStr = document.getElementById('dash-date').value;
             const studentsInGrade = allStudents.filter(s => s.grade === grade);
-            const presentIds = currentDashboardSummary[grade].presentIds || [];
+            const attMap = currentDashboardSummary[grade].attMap || {};
             
             let html = '';
             studentsInGrade.forEach(s => {
-                const isPresent = presentIds.includes(s.id.toString());
+                // ดึงสถานะปัจจุบันของเด็กคนนี้ ถ้าไม่มีแปลว่า ขาดเรียน
+                const currentStatus = attMap[s.id.toString()] || 'ขาดเรียน';
+                const isCustomOther = !['มาเรียน', 'ขาดเรียน', 'ลากิจ', 'ลาป่วย'].includes(currentStatus);
+                
                 html += `
-                    <div class="flex items-center justify-between p-3 border border-gray-100 hover:bg-blue-50 rounded-xl transition-colors">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border border-gray-100 hover:bg-blue-50 rounded-xl transition-colors gap-3">
                         <div class="flex-grow pr-4">
                             <p class="font-bold text-gray-800 text-sm md:text-base">${s.id} - ${s.fullName}</p>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
-                          <input type="checkbox" class="sr-only peer student-edit-checkbox" data-id="${s.id}" data-grade="${grade}" ${isPresent ? 'checked' : ''}>
-                          <div class="w-11 h-6 bg-red-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
-                          <span class="ml-3 text-sm font-bold ${isPresent ? 'text-green-600' : 'text-red-600'} w-10 text-center" id="status-label-${s.id}">${isPresent ? 'มา' : 'ขาด'}</span>
-                        </label>
+                        <div class="flex items-center w-full sm:w-auto shrink-0 gap-2">
+                            <!-- บันทึกสถานะเริ่มต้นไว้ที่ data-original เพื่อเปรียบเทียบภายหลัง -->
+                            <select id="status-select-${s.id}" class="student-edit-select p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 w-full sm:w-auto outline-none" data-id="${s.id}" data-grade="${grade}" data-original="${currentStatus}" onchange="handleStatusChange('${s.id}')">
+                                <option value="มาเรียน" ${currentStatus === 'มาเรียน' ? 'selected' : ''}>✅ มาเรียน</option>
+                                <option value="ขาดเรียน" ${currentStatus === 'ขาดเรียน' ? 'selected' : ''}>❌ ขาดเรียน</option>
+                                <option value="ลากิจ" ${currentStatus === 'ลากิจ' ? 'selected' : ''}>⚠️ ลากิจ</option>
+                                <option value="ลาป่วย" ${currentStatus === 'ลาป่วย' ? 'selected' : ''}>🏥 ลาป่วย</option>
+                                <option value="other" ${isCustomOther ? 'selected' : ''}>✏️ อื่นๆ (ระบุ)</option>
+                            </select>
+                            <input type="text" id="status-other-${s.id}" class="p-2 border border-gray-300 rounded-lg text-sm w-full sm:w-32 focus:ring-2 focus:ring-blue-500 outline-none ${isCustomOther ? '' : 'hidden'}" placeholder="ระบุสาเหตุ" value="${isCustomOther ? currentStatus : ''}">
+                        </div>
                     </div>
                 `;
             });
@@ -932,19 +937,6 @@
             const dParts = dateStr.split('-');
             const thDate = `${dParts[2]}/${dParts[1]}/${parseInt(dParts[0])+543}`;
             document.getElementById('edit-popup-date').innerText = `ประจำวันที่: ${thDate}`;
-            
-            document.querySelectorAll('.student-edit-checkbox').forEach(cb => {
-                cb.addEventListener('change', function() {
-                    const label = document.getElementById(`status-label-${this.dataset.id}`);
-                    if(this.checked) {
-                        label.innerText = 'มา';
-                        label.className = 'ml-3 text-sm font-bold text-green-600 w-10 text-center';
-                    } else {
-                        label.innerText = 'ขาด';
-                        label.className = 'ml-3 text-sm font-bold text-red-600 w-10 text-center';
-                    }
-                });
-            });
 
             const overlay = document.getElementById('edit-popup-overlay');
             const card = document.getElementById('edit-popup-card');
@@ -955,6 +947,25 @@
             card.classList.remove('scale-95');
             card.classList.add('scale-100');
         }
+
+        // ฟังก์ชันสลับการแสดงผลกล่องพิมพ์ข้อความ หากเลือก "อื่นๆ"
+        window.handleStatusChange = function(id) {
+            const select = document.getElementById(`status-select-${id}`);
+            const otherInput = document.getElementById(`status-other-${id}`);
+            
+            // ปรับสีตัวอักษรของ Select ให้เข้ากับสถานะ
+            if(select.value === 'มาเรียน') select.className = "student-edit-select p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 w-full sm:w-auto outline-none text-green-600";
+            else if(select.value === 'ขาดเรียน') select.className = "student-edit-select p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 w-full sm:w-auto outline-none text-red-600";
+            else if(select.value === 'ลากิจ' || select.value === 'ลาป่วย') select.className = "student-edit-select p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 w-full sm:w-auto outline-none text-orange-500";
+            else select.className = "student-edit-select p-2 border border-gray-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 w-full sm:w-auto outline-none text-gray-700";
+
+            if (select.value === 'other') {
+                otherInput.classList.remove('hidden');
+                otherInput.focus();
+            } else {
+                otherInput.classList.add('hidden');
+            }
+        };
 
         function closeEditPopup() {
             const overlay = document.getElementById('edit-popup-overlay');
@@ -969,20 +980,42 @@
             }, 300);
         }
 
+        // ฟังก์ชันบันทึกการแก้ไข (ส่งเฉพาะคนที่มีการเปลี่ยนแปลง)
         async function saveEditAttendance() {
             const dateStr = document.getElementById('dash-date').value;
-            const checkboxes = document.querySelectorAll('.student-edit-checkbox');
-            if (checkboxes.length === 0) return;
+            const selects = document.querySelectorAll('.student-edit-select');
+            if (selects.length === 0) return;
             
-            const grade = checkboxes[0].dataset.grade;
+            const grade = selects[0].dataset.grade;
             const updates = [];
             
-            checkboxes.forEach(cb => {
-                updates.push({
-                    id: cb.dataset.id,
-                    status: cb.checked ? 'present' : 'absent'
-                });
+            selects.forEach(select => {
+                const id = select.dataset.id;
+                const originalStatus = select.dataset.original;
+                let newStatus = select.value;
+                
+                // หากเลือกเป็นอื่นๆ ให้ดึงค่าจากกล่องข้อความแทน
+                if (newStatus === 'other') {
+                    const otherInput = document.getElementById(`status-other-${id}`);
+                    newStatus = otherInput.value.trim();
+                    // หากไม่พิมพ์อะไรเลย ให้ถือว่าขาดเรียน
+                    if(!newStatus) newStatus = 'ขาดเรียน'; 
+                }
+                
+                // **เปรียบเทียบว่าค่ามีการเปลี่ยนแปลงหรือไม่ ถ้าเปลี่ยนถึงจะบันทึกเข้า array**
+                if (newStatus !== originalStatus) {
+                    updates.push({
+                        id: id,
+                        status: newStatus
+                    });
+                }
             });
+
+            // ถ้าไม่มีใครเปลี่ยนแปลงค่าเลย ให้ปิด Popup ไปเลย ไม่ต้องส่งไปกวนเซิร์ฟเวอร์
+            if (updates.length === 0) {
+                closeEditPopup();
+                return; 
+            }
 
             const btn = document.getElementById('btn-save-edit');
             btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>กำลังบันทึก...';
@@ -1007,7 +1040,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK:Implementing Summary Image generator and LINE browser fixes... ---
         // --- Summary Image Logic (LINE Browser Safe) ---
         
         function wrapTextAndGetHeight(context, text, maxWidth, lineHeight) {
@@ -1181,7 +1213,6 @@
             }
         }
 
-        // --- STREAMING_CHUNK:Finalizing charts and CSV export... ---
         async function loadReportData() {
             const start = document.getElementById('report-start').value;
             const end = document.getElementById('report-end').value;
@@ -1294,7 +1325,7 @@
 
             dates.forEach(d => {
                 const parts = d.split('-');
-                const thDate = `${parts[2]}/${parts[1]}/${parseInt(parts[0])+543}`; 
+                const thDate = `${parts[2]}/${parts[1]}/${parseInt(dParts[0])+543}`; 
                 
                 grades.forEach(grade => {
                     const info = reportDataRaw[d][grade];
