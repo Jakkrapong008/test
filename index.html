@@ -328,14 +328,16 @@
                 
                 <!-- พื้นที่แสดงรูปภาพ -->
                 <div class="overflow-y-auto flex-grow rounded-2xl border-2 border-gray-200 bg-gray-100 flex items-center justify-center p-2 mb-4">
-                    <img id="summary-result-img" src="" alt="Summary Image" class="max-w-full h-auto rounded shadow-sm">
+                    <!-- เพิ่ม style เพื่อบังคับให้อนุญาตการกดค้าง (touch-callout) -->
+                    <img id="summary-result-img" src="" alt="Summary Image" class="max-w-full h-auto rounded shadow-sm" style="-webkit-touch-callout: default; pointer-events: auto;">
                 </div>
                 
                 <!-- คำแนะนำและปุ่มจัดการ -->
                 <div class="shrink-0 text-center">
                     <div class="bg-red-50 border border-red-100 text-red-600 text-sm p-3 rounded-xl mb-4 inline-block text-left shadow-sm">
                         <p class="font-bold"><i class="fas fa-info-circle mr-1"></i>ข้อแนะนำสำหรับผู้ใช้ LINE / Facebook:</p>
-                        <p class="mt-1">หากปุ่มด้านล่างไม่ทำงาน ให้ <b>"กดค้างที่รูปภาพ"</b> เพื่อ <b>บันทึก</b> หรือ <b>แชร์</b></p>
+                        <p class="mt-1 text-gray-700">1. ลอง <b>"กดค้างที่รูปภาพ"</b> เพื่อบันทึกหรือแชร์</p>
+                        <p class="mt-2 text-xs font-bold">2. หากกดไม่ได้ ให้กดไอคอน ⋮ (จุดสามจุด) ที่มุมขวาบนของจอ แล้วเลือก <br>"เปิดด้วยเบราว์เซอร์อื่น" (Open in external browser) เพื่อใช้งานได้เต็มรูปแบบ</p>
                     </div>
                     
                     <div class="flex flex-col sm:flex-row justify-center gap-3">
@@ -1078,6 +1080,15 @@
             // แปลง Canvas เป็น Data URL (base64 image)
             currentSummaryDataUrl = canvas.toDataURL('image/png');
             
+            // แปลงเป็น Blob URL เพื่อหลอกให้เบราว์เซอร์ในแอปมองเห็นเป็นไฟล์ภาพจริง
+            let displayUrl = currentSummaryDataUrl;
+            try {
+                const blob = await (await fetch(currentSummaryDataUrl)).blob();
+                displayUrl = URL.createObjectURL(blob);
+            } catch (e) {
+                console.log('Blob conversion failed, using Data URL fallback.');
+            }
+            
             // สร้างชื่อไฟล์
             const dateStr = document.getElementById('dash-date').value;
             const dParts = dateStr.split('-');
@@ -1086,9 +1097,9 @@
 
             hideLoading();
 
-            // นำ Data URL ไปใส่ใน <img> ของ Modal Popup
+            // นำ Data/Blob URL ไปใส่ใน <img> ของ Modal Popup
             const imgEl = document.getElementById('summary-result-img');
-            imgEl.src = currentSummaryDataUrl;
+            imgEl.src = displayUrl;
 
             // แสดง Modal Popup ขึ้นมากลางจอ (แทนการเปิดหน้าต่างใหม่)
             const overlay = document.getElementById('summary-popup-overlay');
