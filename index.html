@@ -282,6 +282,13 @@
 
                     </div>
                 </div>
+                
+                <!-- ปุ่มส่งแจ้งเตือนด่วน (เพิ่มใหม่) -->
+                <div class="mt-8 pt-8 border-t-2 border-gray-200 flex justify-center">
+                     <button onclick="promptLineNotify()" class="bg-[#00B900] hover:bg-[#009900] text-white px-8 py-3 rounded-full font-bold shadow-lg transition-transform transform hover:scale-105 flex items-center justify-center text-lg">
+                        <i class="fab fa-line mr-2 text-2xl"></i> ส่งแจ้งเตือนรายงานเข้ากลุ่ม LINE ทันที
+                    </button>
+                </div>
 
             </div>
         </div>
@@ -1301,6 +1308,34 @@
                    document.body.removeChild(a);
                 }
                 reader.readAsDataURL(blob);
+            }
+        }
+
+        // ฟังก์ชันสำหรับการส่งแจ้งเตือน LINE ทันที
+        function promptLineNotify() {
+             const password = prompt("กรุณากรอกรหัสผ่านเพื่อส่งแจ้งเตือนไปยังกลุ่ม LINE:", "");
+             
+             if (password === null) {
+                 // ผู้ใช้กดยกเลิก
+                 return;
+             }
+             
+             if (password === "adwmk") {
+                 sendLineNotifyImmediate();
+             } else {
+                 customAlert("รหัสผ่านไม่ถูกต้อง");
+             }
+        }
+
+        async function sendLineNotifyImmediate() {
+            showLoading("กำลังส่งแจ้งเตือน...");
+            const res = await fetchAPI({ action: 'triggerLine' });
+            hideLoading();
+            
+            if (res.status === 'success') {
+                customAlert("ส่งแจ้งเตือนเข้ากลุ่ม LINE เรียบร้อยแล้ว");
+            } else {
+                customAlert("เกิดข้อผิดพลาด: " + res.message);
             }
         }
     </script>
