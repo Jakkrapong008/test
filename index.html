@@ -298,6 +298,7 @@
                 initialView: 'dayGridMonth',
                 locale: 'th',
                 height: 'auto',
+                displayEventTime: false,
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -452,9 +453,10 @@
 
                     calendarEvents.push({
                         id: rawObj.id,
-                        title: `${row.time ? row.time + ' ' : ''}${row.activity}`,
+                        title: row.activity,
                         start: startObj,
                         end: calEndObj,
+                        allDay: true,
                         backgroundColor: bgColor,
                         borderColor: bgColor,
                         extendedProps: {
