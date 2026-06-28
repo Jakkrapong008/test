@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการ Timeline & Calendar</title>
+    <title>ระบบจัดการ Timeline และ ปฏิทินกิจกรรม</title>
     
     <!-- Google Fonts: Sarabun -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,8 +18,8 @@
     <link href="https://unpkg.com/vis-timeline@latest/styles/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
     
     <!-- FullCalendar (CDN) -->
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
-
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    
     <!-- SweetAlert2 (CDN) -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
@@ -37,6 +37,7 @@
             border: none;
             border-radius: 0.75rem;
             background-color: white;
+            border: 1px solid #e5e7eb;
         }
         .vis-item {
             border: none;
@@ -62,92 +63,84 @@
             font-family: 'Sarabun', sans-serif;
         }
         .fc-toolbar-title {
-            font-weight: 700 !important;
             font-size: 1.25rem !important;
+            font-weight: 600 !important;
             color: #374151;
         }
-        .fc-button-primary {
-            background-color: #4f46e5 !important;
-            border-color: #4f46e5 !important;
-            text-transform: capitalize !important;
-        }
-        .fc-button-primary:hover {
-            background-color: #4338ca !important;
-            border-color: #4338ca !important;
-        }
         .fc-event {
-            cursor: pointer;
+            border: none !important;
             border-radius: 4px;
             padding: 2px 4px;
             font-size: 0.85rem;
-            border: none;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.1s;
         }
-        .fc-daygrid-event-dot {
-            display: none;
+        .fc-event:hover {
+            transform: scale(1.02);
+            opacity: 0.9;
         }
 
-        /* Custom Scrollbar for modal */
+        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
-<body class="text-gray-800 min-h-screen">
+<body class="text-gray-800 h-screen flex flex-col">
 
     <!-- Navbar/Header -->
-    <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center sticky top-0 z-[90]">
+    <header class="bg-white shadow-sm px-6 py-4 flex justify-between items-center shrink-0 z-10 relative">
         <div class="flex items-center gap-3">
-            <div class="bg-indigo-600 text-white p-2 rounded-lg">
+            <div class="bg-indigo-600 text-white p-2 rounded-lg shadow-sm">
                 <i class="ph ph-calendar-check text-2xl"></i>
             </div>
-            <h1 class="text-2xl font-bold text-gray-800">ระบบจัดการกิจกรรม (Timeline & Calendar)</h1>
+            <h1 class="text-xl md:text-2xl font-bold text-gray-800">Timeline & ปฏิทินกิจกรรม</h1>
         </div>
-        <button onclick="openModal('add')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2">
+        <button onclick="openModal('add')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 md:px-5 py-2.5 rounded-lg font-medium transition-colors shadow-sm flex items-center gap-2">
             <i class="ph ph-plus-circle text-xl"></i>
-            <span>เพิ่มกิจกรรม</span>
+            <span class="hidden md:inline">เพิ่มกิจกรรม</span>
         </button>
     </header>
 
     <!-- Main Content -->
-    <main class="p-6 max-w-7xl mx-auto flex flex-col gap-6 relative">
+    <main class="flex-grow p-6 flex flex-col gap-6 overflow-y-auto relative">
         
-        <!-- Loading Overlay -->
-        <div id="loadingOverlay" class="fixed inset-0 bg-white/80 z-[200] hidden flex-col items-center justify-center backdrop-blur-sm">
-            <i class="ph ph-spinner-gap animate-spin text-5xl text-indigo-600 mb-3"></i>
-            <p class="text-gray-600 font-medium text-lg">กำลังโหลดข้อมูล...</p>
-        </div>
-
         <!-- Legend (คำอธิบายสี) -->
-        <div class="bg-white p-4 rounded-xl shadow-sm flex flex-wrap gap-4 items-center" id="legendContainer">
-            <span class="text-sm font-semibold text-gray-500 mr-2"><i class="ph ph-palette"></i> ประเภทงาน:</span>
+        <div class="bg-white p-4 rounded-xl shadow-sm flex flex-wrap gap-4 items-center shrink-0 border border-gray-100" id="legendContainer">
+            <span class="text-sm font-semibold text-gray-500 mr-2 flex items-center gap-1"><i class="ph ph-palette"></i> ประเภทงาน:</span>
             <!-- สีจะถูกสร้างอัตโนมัติด้วย JS ตรงนี้ -->
         </div>
 
-        <!-- Timeline Container -->
-        <div class="bg-white rounded-xl shadow-sm p-4">
-            <h2 class="text-lg font-bold text-gray-700 mb-3 flex items-center gap-2">
-                <i class="ph ph-chart-bar text-indigo-500"></i> มุมมอง Timeline
+        <!-- Calendar Container (อยู่ด้านบน) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm shrink-0 border border-gray-100">
+            <h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
+                <i class="ph ph-calendar-blank text-indigo-600 text-xl"></i> ปฏิทินรายเดือน
             </h2>
-            <div id="visualization" class="w-full h-[300px]"></div>
+            <div id="calendar" class="w-full"></div>
         </div>
 
-        <!-- Calendar Container -->
-        <div class="bg-white rounded-xl shadow-sm p-6 mb-10">
-             <h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
-                <i class="ph ph-calendar-blank text-indigo-500"></i> มุมมอง ปฏิทินรายเดือน
+        <!-- Timeline Container (อยู่ด้านล่าง) -->
+        <div class="bg-white p-5 rounded-xl shadow-sm shrink-0 min-h-[400px] flex flex-col relative border border-gray-100">
+            <h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2 pb-3 border-b border-gray-100">
+                <i class="ph ph-sliders-horizontal text-indigo-600 text-xl"></i> แถบเวลา (Timeline)
             </h2>
-            <div id="calendar"></div>
+            <div id="visualization" class="w-full flex-grow relative z-0">
+                <!-- Loading Overlay -->
+                <div id="loadingOverlay" class="absolute inset-0 bg-white/80 z-50 flex flex-col items-center justify-center rounded-xl backdrop-blur-sm">
+                    <i class="ph ph-spinner-gap animate-spin text-5xl text-indigo-600 mb-3"></i>
+                    <p class="text-gray-600 font-medium">กำลังโหลดข้อมูล...</p>
+                </div>
+            </div>
         </div>
     </main>
 
     <!-- Modal (Popup เพิ่ม/แก้ไข/ลบ) -->
-    <div id="activityModal" class="fixed inset-0 bg-black/50 z-[300] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div id="activityModal" class="fixed inset-0 bg-black/50 z-[100] hidden items-center justify-center p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col">
             <!-- Modal Header -->
             <div class="bg-indigo-50 px-6 py-4 border-b border-indigo-100 flex justify-between items-center">
-                <h2 id="modalTitle" class="text-xl font-bold text-indigo-800 flex items-center gap-2">เพิ่มกิจกรรมใหม่</h2>
+                <h2 id="modalTitle" class="text-xl font-bold text-indigo-800">เพิ่มกิจกรรมใหม่</h2>
                 <button onclick="closeModal()" class="text-gray-400 hover:text-red-500 transition-colors p-1">
                     <i class="ph ph-x text-2xl"></i>
                 </button>
@@ -217,20 +210,23 @@
         let timelineData = new vis.DataSet();
         let fullCalendar;
         let rawDataList = [];
-        const jobColorMap = {};
+        let uniqueJobTypes = new Set();
 
-        // ชุดสี
+        // ชุดสีสำหรับหมวดหมู่งาน
         const colorPalette = [
             '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', 
             '#ec4899', '#06b6d4', '#84cc16', '#f97316', '#6366f1'
         ];
+        const jobColorMap = {};
 
+        // เมื่อโหลดหน้าเว็บเสร็จ
         document.addEventListener('DOMContentLoaded', () => {
             initTimeline();
             initCalendar();
             fetchData();
         });
 
+        // สร้างสีสำหรับงานแต่ละประเภท
         function getJobColor(jobType) {
             if (!jobType) jobType = 'ทั่วไป';
             if (!jobColorMap[jobType]) {
@@ -242,9 +238,11 @@
             return jobColorMap[jobType];
         }
 
+        // อัปเดตคำอธิบายสี (Legend)
         function updateLegend() {
             const container = document.getElementById('legendContainer');
             container.innerHTML = '<span class="text-sm font-semibold text-gray-500 mr-2 flex items-center gap-1"><i class="ph ph-palette"></i> ประเภทงาน:</span>';
+            
             for (const [job, color] of Object.entries(jobColorMap)) {
                 container.innerHTML += `
                     <div class="flex items-center gap-1.5 text-sm">
@@ -263,6 +261,7 @@
             }
         }
 
+        // เริ่มต้นสร้าง Timeline เปล่าๆ
         function initTimeline() {
             const container = document.getElementById('visualization');
             const options = {
@@ -270,20 +269,29 @@
                 stack: true,
                 margin: { item: 10, axis: 5 },
                 orientation: 'top',
-                zoomMin: 1000 * 60 * 60 * 24, 
-                zoomMax: 1000 * 60 * 60 * 24 * 31 * 12
+                zoomMin: 1000 * 60 * 60 * 24, // ซูมเข้าสุด 1 วัน
+                zoomMax: 1000 * 60 * 60 * 24 * 31 * 12, // ซูมออกสุด 1 ปี
+                format: {
+                    minorLabels: { day: 'D MMM', month: 'MMM', year: 'YYYY' },
+                    majorLabels: { day: 'MMMM YYYY', week: 'MMMM YYYY', month: 'YYYY' }
+                }
             };
+
             timeline = new vis.Timeline(container, timelineData, options);
 
+            // จับเหตุการณ์เมื่อคลิกที่แถบกิจกรรมบน Timeline
             timeline.on('select', function (properties) {
                 if (properties.items.length > 0) {
                     const itemId = properties.items[0];
                     const selectedItem = rawDataList.find(item => item.id == itemId);
-                    if (selectedItem) openModal('edit', selectedItem);
+                    if (selectedItem) {
+                        openModal('edit', selectedItem);
+                    }
                 }
             });
         }
 
+        // เริ่มต้นสร้าง Calendar เปล่าๆ
         function initCalendar() {
             const calendarEl = document.getElementById('calendar');
             fullCalendar = new FullCalendar.Calendar(calendarEl, {
@@ -298,14 +306,13 @@
                 buttonText: {
                     today: 'วันนี้',
                     month: 'เดือน',
-                    list: 'รายการ'
+                    list: 'แผนงาน'
                 },
                 eventClick: function(info) {
                     const rowId = info.event.extendedProps.rowId;
                     const selectedItem = rawDataList.find(item => item.rowId == rowId);
                     if (selectedItem) openModal('edit', selectedItem);
-                },
-                events: [] // จะถูกเพิ่มตอนประมวลผลข้อมูล
+                }
             });
             fullCalendar.render();
         }
@@ -317,12 +324,13 @@
         function parseSmartDate(dateStr) {
             if (!dateStr) return null;
             dateStr = String(dateStr).trim();
+            if (dateStr === '') return null;
             
-            // ถ้ารูปแบบมาเป็น YYYY-MM-DD อยู่แล้ว
-            if (dateStr.includes('-')) return new Date(dateStr);
-            
-            // ถ้ารูปแบบมี / (เช่น 6/9/2026)
-            if (dateStr.includes('/')) {
+            let parsedDate = null;
+
+            if (dateStr.includes('-')) {
+                parsedDate = new Date(dateStr);
+            } else if (dateStr.includes('/')) {
                 const parts = dateStr.split('/');
                 if (parts.length === 3) {
                     let p1 = parseInt(parts[0], 10); // น่าจะเป็น วันที่
@@ -334,55 +342,69 @@
                     let d = p1;
                     let m = p2;
                     
-                    // หากชิ้นที่ 2 มากกว่า 12 แสดงว่าระบบชีตส่งมาเป็น เดือน/วัน/ปี (MM/DD/YYYY)
+                    // หากชิ้นที่ 2 มากกว่า 12 แสดงว่าระบบชีตส่งมาเป็น เดือน/วัน/ปี
                     if (p2 > 12) {
-                        m = p1; // ให้ส่วนที่ 1 เป็นเดือน
-                        d = p2; // ให้ส่วนที่ 2 เป็นวันที่
+                        m = p1;
+                        d = p2;
                     }
-                    return new Date(y, m - 1, d);
+                    parsedDate = new Date(y, m - 1, d);
+                } else {
+                    parsedDate = new Date(dateStr);
                 }
+            } else {
+                parsedDate = new Date(dateStr); // Fallback
             }
-            return new Date(dateStr); // Fallback
+
+            // ตรวจสอบผลลัพธ์ว่าใช่วันที่ที่ถูกต้องหรือไม่ (ป้องกันค่า Invalid Date)
+            if (parsedDate && !isNaN(parsedDate.getTime())) {
+                return parsedDate;
+            }
+            return null;
         }
 
-        // แปลง Date Object เป็น YYYY-MM-DD สำหรับ Input และ FullCalendar
-        function toISODate(dateObj) {
-            if (!dateObj || isNaN(dateObj)) return '';
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
+        // แปลง Date Object เป็น YYYY-MM-DD สำหรับ Input
+        function formatDateForInput(dateObj) {
+            if (!dateObj || isNaN(dateObj.getTime())) return '';
+            let month = '' + (dateObj.getMonth() + 1);
+            let day = '' + dateObj.getDate();
+            let year = dateObj.getFullYear();
+
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+
+            return [year, month, day].join('-');
         }
 
+        // ดึงข้อมูลจาก GAS
         async function fetchData() {
             document.getElementById('loadingOverlay').classList.remove('hidden');
-            document.getElementById('loadingOverlay').classList.add('flex');
             try {
                 const response = await fetch(GAS_URL);
                 const result = await response.json();
+                
                 if (result.status === 'success') {
                     processData(result.data);
                 } else {
-                    Swal.fire('ข้อผิดพลาด', result.message, 'error');
+                    Swal.fire('ข้อผิดพลาด', 'ไม่สามารถดึงข้อมูลได้: ' + result.message, 'error');
                 }
             } catch (error) {
                 console.error(error);
-                Swal.fire('ข้อผิดพลาด', 'ดึงข้อมูลไม่สำเร็จ ตรวจสอบ URL', 'error');
+                Swal.fire('ข้อผิดพลาด', 'เกิดปัญหาในการเชื่อมต่อกับเซิร์ฟเวอร์', 'error');
             } finally {
                 document.getElementById('loadingOverlay').classList.add('hidden');
-                document.getElementById('loadingOverlay').classList.remove('flex');
             }
         }
 
+        // จัดการข้อมูลที่ได้มาและนำเข้า Timeline และ Calendar
         function processData(sheetData) {
             timelineData.clear();
+            fullCalendar.removeAllEvents();
             rawDataList = [];
             
-            const tlItems = [];
-            const calEvents = [];
+            const timelineItems = [];
+            const calendarEvents = [];
             
             sheetData.forEach((row, index) => {
-                // สร้าง Object เก็บข้อมูลดิบ (ใช้สำหรับ Modal)
                 const rawObj = {
                     id: index + 1,
                     rowId: row.rowId,
@@ -396,18 +418,22 @@
 
                 if (row.startDate) {
                     const startObj = parseSmartDate(row.startDate);
+                    
+                    // ข้ามแถวนี้ถ้าวันที่เริ่มต้นไม่ถูกต้อง
+                    if (!startObj) return;
+
                     const endObj = row.endDate ? parseSmartDate(row.endDate) : null;
                     const bgColor = getJobColor(row.jobType);
 
                     // --- 1. เตรียมข้อมูลสำหรับ Vis Timeline ---
                     let contentHTML = `
                         <div class="flex items-center gap-1.5 whitespace-nowrap overflow-hidden">
-                            <span class="font-bold truncate text-white">${row.activity}</span>
-                            ${row.time ? `<span class="text-[10px] bg-black/20 px-1 py-0.5 rounded">${row.time}</span>` : ''}
+                            <span class="font-bold truncate">${row.activity}</span>
+                            ${row.time ? `<span class="text-xs bg-black/20 px-1.5 py-0.5 rounded">${row.time}</span>` : ''}
                         </div>
                     `;
 
-                    tlItems.push({
+                    timelineItems.push({
                         id: rawObj.id,
                         content: contentHTML,
                         start: startObj,
@@ -417,36 +443,38 @@
                     });
 
                     // --- 2. เตรียมข้อมูลสำหรับ FullCalendar ---
-                    // ปฏิทิน FullCalendar หากเป็นกิจกรรมแบบครอบคลุมวันที่สิ้นสุด จะต้อง +1 วัน
-                    let calEndStr = null;
+                    // ปฏิทินแบบ All-day ถ้ามี end date ต้องบวกเพิ่ม 1 วันเพื่อให้ครอบคลุมถึงวันสุดท้าย
+                    let calEndObj = endObj;
                     if (endObj) {
-                        const nextDay = new Date(endObj);
-                        nextDay.setDate(nextDay.getDate() + 1); 
-                        calEndStr = toISODate(nextDay);
+                        calEndObj = new Date(endObj);
+                        calEndObj.setDate(calEndObj.getDate() + 1); 
                     }
 
-                    calEvents.push({
-                        title: (row.time ? `[${row.time}] ` : '') + row.activity,
-                        start: toISODate(startObj),
-                        end: calEndStr,
+                    calendarEvents.push({
+                        id: rawObj.id,
+                        title: `${row.time ? row.time + ' ' : ''}${row.activity}`,
+                        start: startObj,
+                        end: calEndObj,
                         backgroundColor: bgColor,
                         borderColor: bgColor,
-                        extendedProps: { rowId: rawObj.rowId }
+                        extendedProps: {
+                            rowId: row.rowId,
+                            jobType: row.jobType
+                        }
                     });
                 }
             });
 
-            // อัปเดต Timeline
-            timelineData.add(tlItems);
-            if (tlItems.length > 0) {
+            // อัปเดตข้อมูลเข้าไลบรารี
+            timelineData.add(timelineItems);
+            fullCalendar.addEventSource(calendarEvents);
+            
+            if (timelineItems.length > 0) {
                 timeline.fit({ animation: { duration: 800, easingFunction: 'easeInOutQuad' } });
             }
-
-            // อัปเดต Calendar
-            fullCalendar.removeAllEvents();
-            fullCalendar.addEventSource(calEvents);
         }
 
+        // จัดการ Modal
         function openModal(mode, data = null) {
             const modal = document.getElementById('activityModal');
             const form = document.getElementById('activityForm');
@@ -456,22 +484,21 @@
             form.reset();
             
             if (mode === 'add') {
-                title.innerHTML = '<i class="ph ph-plus-circle text-indigo-500"></i> เพิ่มกิจกรรมใหม่';
+                title.innerHTML = '<i class="ph ph-plus-circle"></i> เพิ่มกิจกรรมใหม่';
                 document.getElementById('rowId').value = '';
                 btnDelete.classList.add('hidden');
             } else if (mode === 'edit' && data) {
-                title.innerHTML = '<i class="ph ph-pencil-simple text-indigo-500"></i> แก้ไขกิจกรรม';
+                title.innerHTML = '<i class="ph ph-pencil-simple"></i> แก้ไขกิจกรรม';
                 document.getElementById('rowId').value = data.rowId;
                 document.getElementById('activity').value = data.activity;
                 
-                // แปลงค่ากลับไปใส่ Input (YYYY-MM-DD)
-                document.getElementById('startDate').value = toISODate(parseSmartDate(data.startDate));
-                if (data.endDate) {
-                    document.getElementById('endDate').value = toISODate(parseSmartDate(data.endDate));
-                } else {
-                    document.getElementById('endDate').value = '';
-                }
-
+                // แปลงสตริงวันที่จากชีตเป็น Date Obj ก่อนนำไปแปลงเป็นรูปแบบ YYYY-MM-DD
+                const startObj = parseSmartDate(data.startDate);
+                const endObj = data.endDate ? parseSmartDate(data.endDate) : null;
+                
+                document.getElementById('startDate').value = formatDateForInput(startObj);
+                document.getElementById('endDate').value = formatDateForInput(endObj);
+                
                 document.getElementById('time').value = data.time;
                 document.getElementById('jobType').value = data.jobType;
                 btnDelete.classList.remove('hidden');
@@ -491,6 +518,7 @@
             }, 200);
         }
 
+        // ส่งคำสั่งเพิ่ม/แก้ไข ไปยัง GAS
         async function saveActivity() {
             const rowId = document.getElementById('rowId').value;
             const activity = document.getElementById('activity').value;
@@ -500,17 +528,25 @@
             const jobType = document.getElementById('jobType').value;
 
             if (!activity || !startDate || !jobType) {
-                Swal.fire('แจ้งเตือน', 'กรุณากรอก ชื่อกิจกรรม, วันที่เริ่ม และ ประเภทงาน', 'warning');
+                Swal.fire('แจ้งเตือน', 'กรุณากรอก ชื่อกิจกรรม, วันที่เริ่ม และ ประเภทงาน ให้ครบถ้วน', 'warning');
                 return;
             }
 
+            const action = rowId ? 'edit' : 'add';
             const payload = {
-                action: rowId ? 'edit' : 'add',
+                action: action,
                 rowId: rowId,
-                data: { activity, startDate, endDate, time, jobType }
+                data: {
+                    activity: activity,
+                    startDate: startDate,
+                    endDate: endDate,
+                    time: time,
+                    jobType: jobType
+                }
             };
 
             closeModal();
+            
             Swal.fire({
                 title: 'กำลังบันทึกข้อมูล...',
                 allowOutsideClick: false,
@@ -527,16 +563,28 @@
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    Swal.fire({ icon: 'success', title: 'สำเร็จ', timer: 1500, showConfirmButton: false });
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'สำเร็จ',
+                        text: result.message,
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
                     fetchData();
                 } else {
                     Swal.fire('ข้อผิดพลาด', result.message, 'error');
                 }
             } catch (error) {
-                Swal.fire('ข้อผิดพลาด', 'ไม่สามารถบันทึกได้ โปรดตรวจสอบการอัปเดตไฟล์ Code.gs (DoPost)', 'error');
+                console.error(error);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'เกิดข้อผิดพลาดในการส่งข้อมูล',
+                    text: 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้',
+                });
             }
         }
 
+        // ส่งคำสั่งลบ ไปยัง GAS
         function deleteActivity() {
             const rowId = document.getElementById('rowId').value;
             if (!rowId) return;
@@ -553,19 +601,29 @@
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     closeModal();
-                    Swal.fire({ title: 'กำลังลบข้อมูล...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+                    Swal.fire({
+                        title: 'กำลังลบข้อมูล...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading() }
+                    });
 
                     try {
+                        const payload = { action: 'delete', rowId: rowId };
                         const response = await fetch(GAS_URL, {
                             method: 'POST',
-                            body: JSON.stringify({ action: 'delete', rowId: rowId }),
+                            body: JSON.stringify(payload),
                             headers: { 'Content-Type': 'text/plain;charset=utf-8' }
                         });
                         
                         const resJson = await response.json();
                         
                         if (resJson.status === 'success') {
-                            Swal.fire({ icon: 'success', title: 'ลบสำเร็จ', timer: 1500, showConfirmButton: false });
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'ลบสำเร็จ',
+                                timer: 1500,
+                                showConfirmButton: false
+                            });
                             fetchData();
                         } else {
                             Swal.fire('ข้อผิดพลาด', resJson.message, 'error');
